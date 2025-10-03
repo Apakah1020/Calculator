@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Calculator & Music App</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #bg-video {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
+    object-fit: cover;
+  }
+
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tabs {
+    display: flex;
+    margin-bottom: 15px;
+    background: rgba(30, 30, 30, 0.8);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: #ccc;
+    transition: all 0.3s;
+  }
+
+  .tab.active {
+    background: rgba(50, 50, 50, 0.9);
+    color: #fff;
+  }
+
+  .content-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .calculator-container {
+    display: flex;
+    gap: 20px;
+  }
+
+  .calculator {
+    width: 225px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(30, 30, 30, 0.9);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  }
+
+  .display {
+    width: 100%;
+    color: #ff3b30;
+    height: 50px;
+    margin-bottom: 15px;
+    text-align: right;
+    padding: 10px;
+    font-size: 24px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 8px;
+  }
+
+  .button {
+    padding: 15px 0;
+    text-align: center;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.2s;
+    color: white;
+    font-weight: bold;
+  }
+
+  .button.number {
+    background-color: #4a86e8;
+  }
+
+  .button.number:hover {
+    background-color: #3a76d8;
+  }
+
+  .button.operator {
+    background-color: #e06666;
+  }
+
+  .button.operator:hover {
+    background-color: #d05656;
+  }
+
+  .button.function {
+    background-color: #f1c232;
+  }
+
+  .button.function:hover {
+    background-color: #e1b222;
+  }
+
+  .button.equals {
+    background-color: #6aa84f;
+  }
+
+  .button.equals:hover {
+    background-color: #5a983f;
+  }
+
+  .button.backspace {
+    background-color: #9c27b0;
+  }
+
+  .button.backspace:hover {
+    background-color: #8c1790;
+  }
+
+  .voice-controls {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .voice-toggle {
+    background: rgba(50, 50, 50, 0.8);
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .voice-toggle:hover {
+    background: rgba(70, 70, 70, 0.9);
+  }
+
+  .voice-select {
+    background: rgba(50, 50, 50, 0.8);
+    color: white;
+    border: 1px solid #444;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #history {
+    width: 255px;
+    background-color: rgba(30, 30, 30, 0.9);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  }
+
+  #history h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #ccc;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+  }
+
+  #history ul {
+    padding-left: 20px;
+    margin: 0 0 15px 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  #history li {
+    margin-bottom: 8px;
+    color: #ddd;
+  }
+
+  .clear-history {
+    background-color: #ff7043;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: all 0.2s;
+  }
+
+  .clear-history:hover {
+    background-color: #ff6033;
+  }
+
+  /* Music Player Styles */
+  .music-container {
+    display: none;
+    width: 90%;
+    max-width: 1000px;
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  }
+
+  .music-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .music-header h2 {
+    color: #fff;
+    margin: 0;
+  }
+
+  .music-input-container {
+    margin-bottom: 20px;
+  }
+
+  .music-input {
+    width: 100%;
+    padding: 10px;
+    background: rgba(50, 50, 50, 0.8);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    margin-bottom: 10px;
+  }
+
+  .add-music-btn {
+    background-color: #4a86e8;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .add-music-btn:hover {
+    background-color: #3a76d8;
+  }
+
+  .playlist {
+    margin-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .playlist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(50, 50, 50, 0.6);
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .playlist-item-title {
+    color: #fff;
+    flex-grow: 1;
+    margin-right: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .playlist-controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .play-btn, .remove-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .play-btn:hover {
+    color: #4a86e8;
+  }
+
+  .remove-btn:hover {
+    color: #e06666;
+  }
+
+  .music-player {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(50, 50, 50, 0.8);
+    border-radius: 5px;
+  }
+
+  .now-playing {
+    color: #ccc;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .player-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+
+  .player-control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .player-control-btn:hover {
+    color: #4a86e8;
+  }
+
+  .progress-container {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .progress {
+    height: 100%;
+    background: #4a86e8;
+    border-radius: 5px;
+    width: 0%;
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    color: #ccc;
+    font-size: 12px;
+  }
+
+  .media-container {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .youtube-container {
+    width: 100%;
+    max-width: 800px;
+    height: 450px;
+    display: none;
+  }
+
+  .youtube-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+  }
+
+  .spotify-container {
+    width: 100%;
+    max-width: 800px;
+    height: 380px;
+    display: none;
+  }
+
+  .spotify-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+  }
+
+  .no-media-message {
+    color: #ccc;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop id="bg-video">
+  <source src="mtkaja.mp4" type="video/mp4"> 
+</video>
+
+<div class="app-container">
+  <div class="tabs">
+    <div class="tab active" id="calculatorTab">Calculator</div>
+    <div class="tab" id="musicTab">Music</div>
+  </div>
+
+  <div class="content-container">
+    <div class="calculator-container" id="calculatorContainer">
+      <div class="calculator">
+        <input type="text" class="display" id="display" disabled>
+        <div class="buttons">
+          <!-- Row 1 - Functions -->
+          <div class="button function" onclick="clearDisplay()">C</div>
+          <div class="button function" onclick="calculatePercentage()">%</div>
+          <div class="button operator" onclick="appendToDisplay('/', 'bagi')">÷</div>
+          <div class="button function" onclick="backspace()">⌫</div>
+          
+          <!-- Row 2 - Numbers and operators -->
+          <div class="button number" onclick="appendToDisplay('7', 'tujuh')">7</div>
+          <div class="button number" onclick="appendToDisplay('8', 'delapan')">8</div>
+          <div class="button number" onclick="appendToDisplay('9', 'sembilan')">9</div>
+          <div class="button operator" onclick="appendToDisplay('*', 'kali')">×</div>
+          
+          <!-- Row 3 - Numbers and operators -->
+          <div class="button number" onclick="appendToDisplay('4', 'empat')">4</div>
+          <div class="button number" onclick="appendToDisplay('5', 'lima')">5</div>
+          <div class="button number" onclick="appendToDisplay('6', 'enam')">6</div>
+          <div class="button operator" onclick="appendToDisplay('-', 'kurang')">-</div>
+          
+          <!-- Row 4 - Numbers and operators -->
+          <div class="button number" onclick="appendToDisplay('1', 'satu')">1</div>
+          <div class="button number" onclick="appendToDisplay('2', 'dua')">2</div>
+          <div class="button number" onclick="appendToDisplay('3', 'tiga')">3</div>
+          <div class="button operator" onclick="appendToDisplay('+', 'tambah')">+</div>
+          
+          <!-- Row 5 - Zero, decimal, equals -->
+          <div class="button number" onclick="appendToDisplay('0', 'nol')" style="grid-column: span 2;">0</div>
+          <div class="button function" onclick="appendToDisplay('.', 'koma')">.</div>
+          <div class="button equals" onclick="calculate()">=</div>
+          
+          <!-- Row 6 - Advanced functions -->
+          <div class="button function" onclick="appendToDisplay('**', 'pangkat')">x²</div>
+          <div class="button function" onclick="appendSqrt()">√</div>
+          <div class="button function" onclick="convertToYen()">To ¥</div>
+          <div class="button function" onclick="appendSin()">sin</div>
+          
+          <!-- Row 7 - More advanced functions -->
+          <div class="button function" onclick="appendCos()">cos</div>
+          <div class="button function" onclick="appendTan()">tan</div>
+        </div>
+      </div>
+
+      <div id="history">
+        <h3>History</h3>
+        <ul id="history-list"></ul>
+        <button class="clear-history" onclick="clearHistory()">Clear History</button>
+      </div>
+    </div>
+
+    <div class="music-container" id="musicContainer">
+      <div class="music-header">
+        <h2>Music Player</h2>
+      </div>
+
+      <div class="music-input-container">
+        <input type="text" class="music-input" id="musicInput" placeholder="Enter YouTube or Spotify URL">
+        <button class="add-music-btn" onclick="addMusic()">Add to Playlist</button>
+      </div>
+
+      <div class="playlist" id="playlist">
+        <!-- Playlist items will be added here dynamically -->
+      </div>
+
+      <div class="media-container">
+        <div class="youtube-container" id="youtubeContainer">
+          <iframe class="youtube-iframe" id="youtubeFrame" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        
+        <div class="spotify-container" id="spotifyContainer">
+          <iframe class="spotify-iframe" id="spotifyFrame" src="" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+        
+        <div class="no-media-message" id="noMediaMessage">
+          Select a track from your playlist to play
+        </div>
+      </div>
+
+      <div class="music-player" id="musicPlayer" style="display: none;">
+        <div class="now-playing" id="nowPlaying">No track selected</div>
+        
+        <div class="player-controls">
+          <button class="player-control-btn" id="prevBtn">⏮</button>
+          <button class="player-control-btn" id="playPauseBtn">▶</button>
+          <button class="player-control-btn" id="nextBtn">⏭</button>
+        </div>
+        
+        <div class="progress-container">
+          <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="time-display">
+          <span id="currentTime">0:00</span>
+          <span id="duration">0:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="voice-controls">
+  <button class="voice-toggle" id="voiceToggle">Voice: ON</button>
+  <select class="voice-select" id="voiceSelect">
+    <option value="default">Default Voice</option>
+    <option value="female">Female Voice</option>
+    <option value="male">Male Voice</option>
+  </select>
+</div>
+
+<script>
+  const display = document.getElementById('display');
+  let voiceEnabled = true;
+  let selectedVoice = 'default';
+  let currentTrack = null;
+  let isPlaying = false;
+  let playlist = [];
+  let currentTrackIndex = 0;
+  let progressInterval = null;
+  
+  // Tab switching
+  document.getElementById('calculatorTab').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('musicTab').classList.remove('active');
+    document.getElementById('calculatorContainer').style.display = 'flex';
+    document.getElementById('musicContainer').style.display = 'none';
+  });
+  
+  document.getElementById('musicTab').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('calculatorTab').classList.remove('active');
+    document.getElementById('calculatorContainer').style.display = 'none';
+    document.getElementById('musicContainer').style.display = 'block';
+    speak('Pemutar musik');
+  });
+  
+  // Toggle voice on/off
+  document.getElementById('voiceToggle').addEventListener('click', function() {
+    voiceEnabled = !voiceEnabled;
+    this.textContent = 'Voice: ' + (voiceEnabled ? 'ON' : 'OFF');
+  });
+  
+  // Voice selection
+  document.getElementById('voiceSelect').addEventListener('change', function() {
+    selectedVoice = this.value;
+  });
+
+  // Initialize speech synthesis
+  const synth = window.speechSynthesis;
+
+  function speak(text) {
+    if (!voiceEnabled) return;
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Set language to Indonesian
+    utterance.lang = 'id-ID';
+    
+    // Try to use an Indonesian voice if available
+    const voices = synth.getVoices();
+    let indonesianVoice = voices.find(voice => 
+      voice.lang.includes('id-ID') || voice.name.includes('Indonesian')
+    );
+    
+    // Apply voice selection
+    if (selectedVoice === 'female' && indonesianVoice) {
+      // Try to find a female voice
+      const femaleVoice = voices.find(voice => 
+        voice.lang.includes('id-ID') && voice.name.includes('Female')
+      ) || indonesianVoice;
+      utterance.voice = femaleVoice;
+    } else if (selectedVoice === 'male' && indonesianVoice) {
+      // Try to find a male voice
+      const maleVoice = voices.find(voice => 
+        voice.lang.includes('id-ID') && voice.name.includes('Male')
+      ) || indonesianVoice;
+      utterance.voice = maleVoice;
+    } else if (indonesianVoice) {
+      utterance.voice = indonesianVoice;
+    }
+    
+    utterance.rate = 0.9;  // Slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    synth.speak(utterance);
+  }
+
+  function appendToDisplay(value, speechText) {
+    if (display.value.includes("IDR") || display.value.includes("¥")) {
+      display.value = "";
+    }
+    display.value += value;
+    
+    // Speak the button text in Indonesian
+    if (speechText) {
+      speak(speechText);
+    }
+  }
+
+  function appendSqrt() {
+    if (display.value.includes("IDR") || display.value.includes("¥")) {
+      display.value = "";
+    }
+    display.value += "Math.sqrt(";
+    speak('akar kuadrat');
+  }
+
+  function calculatePercentage() {
+    try {
+      let value = parseFloat(display.value.replace("IDR","").replace("¥","").trim());
+      if (isNaN(value)) {
+        display.value = "Error";
+        speak('kesalahan');
+      } else {
+        let result = value / 100;
+        display.value = result;
+
+        let historyList = document.getElementById("history-list");
+        let li = document.createElement("li");
+        li.textContent = value + "% = " + result;
+        historyList.appendChild(li);
+
+        // Speak the result in Indonesian
+        speak('persen ' + value + ' sama dengan ' + result);
+      }
+    } catch (error) {
+      display.value = "Error";
+      speak('kesalahan');
+    }
+  }
+
+  function appendSin() {
+    if (display.value.includes("IDR") || display.value.includes("¥")) {
+      display.value = "";
+    }
+    display.value += "Math.sin(";
+    speak('sinus');
+  }
+
+  function appendCos() {
+    if (display.value.includes("IDR") || display.value.includes("¥")) {
+      display.value = "";
+    }
+    display.value += "Math.cos(";
+    speak('cosinus');
+  }
+
+  function appendTan() {
+    if (display.value.includes("IDR") || display.value.includes("¥")) {
+      display.value = "";
+    }
+    display.value += "Math.tan(";
+    speak('tangen');
+  }
+
+  function backspace() {
+    if (display.value.length > 0) {
+      // Remove the last character
+      display.value = display.value.slice(0, -1);
+      speak('hapus');
+    }
+  }
+
+  function clearDisplay() {
+    display.value = '';
+    speak('hapus semua');
+  }
+
+  function calculate() {
+    try {
+      let expression = display.value.replace("IDR", "").replace("¥","").trim();
+      
+      // Handle square root calculation
+      if (expression.includes("Math.sqrt(")) {
+        // Make sure we have a closing parenthesis
+        if (!expression.includes(")")) {
+          expression += ")";
+        }
+      }
+      
+      // Handle trigonometric functions
+      if (expression.includes("Math.sin(") || expression.includes("Math.cos(") || expression.includes("Math.tan(")) {
+        // Make sure we have a closing parenthesis
+        if (!expression.includes(")")) {
+          expression += ")";
+        }
+        
+        // Convert degrees to radians for trigonometric functions
+        expression = expression.replace(/Math\.(sin|cos|tan)\(([^)]+)\)/g, function(match, func, value) {
+          // Check if the value is a number
+          if (!isNaN(value)) {
+            return `Math.${func}(${value} * Math.PI / 180)`;
+          }
+          return match;
+        });
+      }
+      
+      let result = eval(expression);
+      let finalResult = result + " IDR";
+      display.value = finalResult;
+
+      let historyList = document.getElementById("history-list");
+      let li = document.createElement("li");
+      li.textContent = expression + " = " + finalResult;
+      historyList.appendChild(li);
+
+      // Speak the result in Indonesian
+      speakResultInIndonesian(result);
+    } catch (error) {
+      display.value = 'Error';
+      speak('kesalahan');
+    }
+  }
+
+  function convertToYen() {
+    try {
+      let value = parseFloat(display.value.replace("IDR","").replace("¥","").trim());
+      if (isNaN(value)) {
+        display.value = "Error";
+        speak('kesalahan');
+      } else {
+        let rate = 0.0095; 
+        let result = value * rate;
+        let finalResult = result.toFixed(2) + " ¥";
+        display.value = finalResult;
+
+        let historyList = document.getElementById("history-list");
+        let li = document.createElement("li");
+        li.textContent = value + " IDR = " + finalResult;
+        historyList.appendChild(li);
+
+        // Speak the conversion in Indonesian
+        speak('dikonversi ke ' + result + ' yen');
+      }
+    } catch (error) {
+      display.value = "Error";
+      speak('kesalahan');
+    }
+  }
+
+  function clearHistory() {
+    document.getElementById("history-list").innerHTML = "";
+    speak('riwayat dihapus');
+  }
+  
+  // Function to speak numbers in Indonesian
+  function speakResultInIndonesian(number) {
+    let numberString = number.toString();
+    let words = [];
+    
+    if (number < 0) {
+      words.push('negatif');
+      numberString = numberString.substring(1);
+    }
+    
+    // Split by decimal point
+    let parts = numberString.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts.length > 1 ? parts[1] : null;
+    
+    // Convert integer part to words
+    if (integerPart === '0') {
+      words.push('nol');
+    } else {
+      words.push(convertNumberToIndonesianWords(integerPart));
+    }
+    
+    // Add decimal part if exists
+    if (decimalPart) {
+      words.push('koma');
+      for (let digit of decimalPart) {
+        words.push(convertDigitToIndonesian(digit));
+      }
+    }
+    
+    // Add currency
+    words.push('rupiah');
+    
+    speak(words.join(' '));
+  }
+  
+  // Convert a single digit to Indonesian word
+  function convertDigitToIndonesian(digit) {
+    const digitMap = {
+      '0': 'nol',
+      '1': 'satu',
+      '2': 'dua',
+      '3': 'tiga',
+      '4': 'empat',
+      '5': 'lima',
+      '6': 'enam',
+      '7': 'tujuh',
+      '8': 'delapan',
+      '9': 'sembilan'
+    };
+    
+    return digitMap[digit] || '';
+  }
+  
+  // Convert a number to Indonesian words (simplified version)
+  function convertNumberToIndonesianWords(numStr) {
+    // This is a simplified version that handles numbers up to 999
+    // For a complete solution, you would need a more complex algorithm
+    
+    let num = parseInt(numStr);
+    if (isNaN(num)) return '';
+    
+    if (num === 0) return 'nol';
+    
+    const units = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
+    const tens = ['', 'sepuluh', 'dua puluh', 'tiga puluh', 'empat puluh', 'lima puluh', 'enam puluh', 'tujuh puluh', 'delapan puluh', 'sembilan puluh'];
+    const teens = ['sepuluh', 'sebelas', 'dua belas', 'tiga belas', 'empat belas', 'lima belas', 'enam belas', 'tujuh belas', 'delapan belas', 'sembilan belas'];
+    
+    let result = '';
+    
+    // Hundreds
+    if (num >= 100) {
+      const hundred = Math.floor(num / 100);
+      if (hundred === 1) {
+        result += 'seratus';
+      } else {
+        result += units[hundred] + ' ratus';
+      }
+      num %= 100;
+      
+      if (num > 0) result += ' ';
+    }
+    
+    // Tens and teens
+    if (num >= 20) {
+      const ten = Math.floor(num / 10);
+      result += tens[ten];
+      num %= 10;
+      
+      if (num > 0) result += ' ';
+    } else if (num >= 10) {
+      result += teens[num - 10];
+      num = 0;
+    }
+    
+    // Units
+    if (num > 0) {
+      result += units[num];
+    }
+    
+    return result;
+  }
+  
+  // Music Player Functions
+  function addMusic() {
+    const input = document.getElementById('musicInput');
+    const url = input.value.trim();
+    
+    if (!url) {
+      speak('Silakan masukkan URL musik');
+      return;
+    }
+    
+    // Extract video ID or title from URL
+    let title = url;
+    let platform = 'unknown';
+    let id = '';
+    
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      platform = 'youtube';
+      // Extract video ID for YouTube
+      const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      if (videoIdMatch && videoIdMatch[1]) {
+        id = videoIdMatch[1];
+        // For demo purposes, we'll use the video ID as title
+        title = `YouTube: ${id.substring(0, 8)}...`;
+      }
+    } else if (url.includes('spotify.com')) {
+      platform = 'spotify';
+      // Extract track ID for Spotify
+      const trackIdMatch = url.match(/track\/([a-zA-Z0-9]+)/);
+      if (trackIdMatch && trackIdMatch[1]) {
+        id = trackIdMatch[1];
+        title = `Spotify: ${id.substring(0, 8)}...`;
+      }
+    } else {
+      // Default for other URLs
+      title = `Track: ${url.substring(0, 15)}...`;
+    }
+    
+    // Add to playlist array
+    playlist.push({
+      title: title,
+      url: url,
+      platform: platform,
+      id: id
+    });
+    
+    // Add to UI
+    updatePlaylistUI();
+    
+    // Clear input
+    input.value = '';
+    
+    speak('Musik ditambahkan ke daftar putar');
+  }
+  
+  function updatePlaylistUI() {
+    const playlistElement = document.getElementById('playlist');
+    playlistElement.innerHTML = '';
+    
+    playlist.forEach((track, index) => {
+      const item = document.createElement('div');
+      item.className = 'playlist-item';
+      
+      const titleElement = document.createElement('div');
+      titleElement.className = 'playlist-item-title';
+      titleElement.textContent = track.title;
+      
+      const controlsElement = document.createElement('div');
+      controlsElement.className = 'playlist-controls';
+      
+      const playButton = document.createElement('button');
+      playButton.className = 'play-btn';
+      playButton.textContent = '▶';
+      playButton.onclick = () => playTrack(index);
+      
+      const removeButton = document.createElement('button');
+      removeButton.className = 'remove-btn';
+      removeButton.textContent = '✕';
+      removeButton.onclick = () => removeTrack(index);
+      
+      controlsElement.appendChild(playButton);
+      controlsElement.appendChild(removeButton);
+      
+      item.appendChild(titleElement);
+      item.appendChild(controlsElement);
+      
+      playlistElement.appendChild(item);
+    });
+  }
+  
+  function playTrack(index) {
+    if (index < 0 || index >= playlist.length) return;
+    
+    // Clear any existing progress interval
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+    
+    currentTrackIndex = index;
+    currentTrack = playlist[index];
+    
+    // Update now playing
+    document.getElementById('nowPlaying').textContent = currentTrack.title;
+    
+    // Show music player
+    document.getElementById('musicPlayer').style.display = 'block';
+    
+    // Hide all media containers first
+    document.getElementById('youtubeContainer').style.display = 'none';
+    document.getElementById('spotifyContainer').style.display = 'none';
+    document.getElementById('noMediaMessage').style.display = 'none';
+    
+    // For YouTube videos, we can embed them
+    if (currentTrack.platform === 'youtube') {
+      const iframe = document.getElementById('youtubeFrame');
+      iframe.src = `https://www.youtube.com/embed/${currentTrack.id}?autoplay=1&enablejsapi=1`;
+      document.getElementById('youtubeContainer').style.display = 'block';
+      isPlaying = true;
+      updatePlayPauseButton();
+    } else if (currentTrack.platform === 'spotify') {
+      const iframe = document.getElementById('spotifyFrame');
+      iframe.src = `https://open.spotify.com/embed/track/${currentTrack.id}?utm_source=generator&theme=0`;
+      document.getElementById('spotifyContainer').style.display = 'block';
+      isPlaying = true;
+      updatePlayPauseButton();
+      
+      // For Spotify, we'll simulate progress since we can't control it directly
+      simulateProgress();
+    } else {
+      // For other platforms, we'll just show a message
+      document.getElementById('noMediaMessage').style.display = 'block';
+      speak(`Memutar ${currentTrack.title}`);
+      isPlaying = true;
+      updatePlayPauseButton();
+      
+      // Simulate progress
+      simulateProgress();
+    }
+  }
+  
+  function removeTrack(index) {
+    if (index < 0 || index >= playlist.length) return;
+    
+    // If we're removing the currently playing track
+    if (currentTrackIndex === index) {
+      stopTrack();
+    } else if (currentTrackIndex > index) {
+      // Adjust current index if needed
+      currentTrackIndex--;
+    }
+    
+    playlist.splice(index, 1);
+    updatePlaylistUI();
+    
+    speak('Musik dihapus dari daftar putar');
+  }
+  
+  function stopTrack() {
+    // Clear progress interval
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+    
+    // Stop YouTube video
+    const youtubeFrame = document.getElementById('youtubeFrame');
+    youtubeFrame.src = '';
+    
+    // Stop Spotify
+    const spotifyFrame = document.getElementById('spotifyFrame');
+    spotifyFrame.src = '';
+    
+    // Reset player state
+    isPlaying = false;
+    updatePlayPauseButton();
+    document.getElementById('progress').style.width = '0%';
+    document.getElementById('currentTime').textContent = '0:00';
+    document.getElementById('duration').textContent = '0:00';
+    
+    // Hide media containers
+    document.getElementById('youtubeContainer').style.display = 'none';
+    document.getElementById('spotifyContainer').style.display = 'none';
+    document.getElementById('noMediaMessage').style.display = 'block';
+  }
+  
+  function togglePlayPause() {
+    if (!currentTrack) {
+      if (playlist.length > 0) {
+        playTrack(0);
+      }
+      return;
+    }
+    
+    if (isPlaying) {
+      // Pause
+      if (currentTrack.platform === 'youtube') {
+        const iframe = document.getElementById('youtubeFrame');
+        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      }
+      isPlaying = false;
+      
+      // Clear progress interval for non-YouTube tracks
+      if (currentTrack.platform !== 'youtube' && progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+    } else {
+      // Play
+      if (currentTrack.platform === 'youtube') {
+        const iframe = document.getElementById('youtubeFrame');
+        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }
+      isPlaying = true;
+      
+      // Restart progress simulation for non-YouTube tracks
+      if (currentTrack.platform !== 'youtube') {
+        simulateProgress();
+      }
+    }
+    
+    updatePlayPauseButton();
+  }
+  
+  function updatePlayPauseButton() {
+    const button = document.getElementById('playPauseBtn');
+    button.textContent = isPlaying ? '⏸' : '▶';
+  }
+  
+  function simulateProgress() {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
+    
+    let progress = 0;
+    const duration = 180; // 3 minutes in seconds
+    
+    progressInterval = setInterval(() => {
+      if (!isPlaying) {
+        clearInterval(progressInterval);
+        return;
+      }
+      
+      progress += 1;
+      const percent = (progress / duration) * 100;
+      
+      document.getElementById('progress').style.width = `${percent}%`;
+      document.getElementById('currentTime').textContent = formatTime(progress);
+      document.getElementById('duration').textContent = formatTime(duration);
+      
+      if (progress >= duration) {
+        clearInterval(progressInterval);
+        // Play next track if available
+        if (currentTrackIndex < playlist.length - 1) {
+          playTrack(currentTrackIndex + 1);
+        } else {
+          stopTrack();
+        }
+      }
+    }, 1000);
+  }
+  
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+  
+  // Player control event listeners
+  document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+  
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentTrackIndex > 0) {
+      playTrack(currentTrackIndex - 1);
+    }
+  });
+  
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if (currentTrackIndex < playlist.length - 1) {
+      playTrack(currentTrackIndex + 1);
+    }
+  });
+  
+  // Load voices when they're ready
+  if ('onvoiceschanged' in synth) {
+    synth.onvoiceschanged = function() {
+      // Voices are loaded
+    };
+  }
+</script>
+
+</body>
+</html>
